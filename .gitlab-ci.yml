@@ -1,0 +1,51 @@
+default:
+  image: golang:1.19-bullseye
+
+stages:
+  - build
+  - pack
+
+build:
+  tags: [docker, x86, merak]
+  stage: build
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+    HTTP_PROXY: $DEFAULT_PROXY
+    HTTPS_PROXY: $DEFAULT_PROXY
+    http_proxy: $DEFAULT_PROXY
+    https_proxy: $DEFAULT_PROXY
+    GOFLAGS: ""
+  cache:
+    - key:
+        files:
+          - go.mod
+          - go.sum
+      paths:
+        - .go/
+  before_script:
+    - mkdir -p .go
+  artifacts:
+    name: "letsfil-job"
+    paths: [letsfil-job]
+  script:
+    - go mod download
+    - go build -ldflags="-s -w" -o letsfil-job
+
+pack:
+  tags: [docker, x86, merak]
+  stage: pack
+  dependencies:
+    - build
+  image: geektr/yumemi:builder-20221213
+  variables:
+    DOCKER_BUILDKIT: 1
+    docker_tag: "@repo:@ref,@repo:@ref-@datetime"
+  script:
+    - yumemi gitlab-ci docker build
+  only:
+    changes:
+      - Dockerfile
+      - src/**/*
+      - main.go
+      - letsfil-job
+      - .gitlab-ci.yml
