@@ -66,58 +66,61 @@ func (this *RaisingPlanController) RaiseTestSealProgress(c *gin.Context) goft.Js
 	power_f = power_f * 1024 * 1024 * 1024
 
 	// 使用数据库事务
-	tx := this.Db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
+
+	// 使用mysql 事务
+	err = this.Db.Transaction(func(tx *gorm.DB) error {
+		// 更新资产包表
+		var updateMap = map[string]interface{}{
+			"total_pledge_amount": pledge_f,
+			"total_power":         power_f,
 		}
-	}()
+		log.Infof("asset_pack_id: %+v ,updateMap:%+v", raising_id, updateMap)
+		if err := tx.Model(&models.RaisingAssetPack{}).Where("asset_pack_id = ?", raising_id).Updates(updateMap).Error; err != nil {
+			log.Error(err)
+			return err
 
-	// 更新资产包表
-	var updateMap = map[string]interface{}{
-		"total_pledge_amount": pledge_f,
-		"total_power":         power_f,
-	}
-	log.Infof("asset_pack_id: %+v ,updateMap:%+v", raising_id, updateMap)
-	if err := tx.Model(&models.RaisingAssetPack{}).Where("asset_pack_id = ?", raising_id).Updates(updateMap).Error; err != nil {
-		log.Error(err)
-		return result.SystemError.WithParamError(err)
-	}
-	// 查询募集计划
-	var raisingPlan models.RaisingPlan
-	if err := tx.Where("raising_id = ?", raising_id).First(&raisingPlan).Error; err != nil {
-		log.Errorf("query raisingPlan error:%+v", err)
-		return result.SystemError.WithParamError(err)
+		}
+		// 查询募集计划
+		var raisingPlan models.RaisingPlan
+		if err := tx.Where("raising_id = ?", raising_id).First(&raisingPlan).Error; err != nil {
+			log.Errorf("query raisingPlan error:%+v", err)
+			return err
+		}
+
+		// 随机一个 小于611440 但是6开头的值
+		rand.Seed(time.Now().UnixNano())
+		randNum := rand.Intn(611440)
+		for randNum > 611440 || randNum < 600000 {
+			randNum = rand.Intn(611440)
+		}
+		// 插入奖励释放记录
+		var rewardRelease models.BlockRewardReleaseDetail
+		rewardRelease.MinerId = raisingPlan.MinerId
+		rewardRelease.AssetPackId = raising_id_i.BigInt().Uint64()
+		rewardRelease.ReleasedReward = decimal.NewFromFloat(released_balance_f)
+		rewardRelease.Height = uint64(randNum)
+
+		if err := tx.Create(&rewardRelease).Error; err != nil {
+			log.Errorf("create rewardRelease error:%+v", err)
+			return err
+		}
+		var rewardWillRelease models.BlockRewardReleaseDetail
+		rewardWillRelease.MinerId = raisingPlan.MinerId
+		rewardWillRelease.AssetPackId = raising_id_i.BigInt().Uint64()
+		rewardWillRelease.ReleasedReward = decimal.NewFromFloat(will_release_f)
+		rewardWillRelease.Height = uint64(randNum) * 100
+
+		if err := tx.Create(&rewardWillRelease).Error; err != nil {
+			log.Errorf("create rewardRelease error:%+v", err)
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		log.Errorf("tx error:%+v", err)
+		return result.ParamError.WithParamError(err)
 	}
 
-	// 随机一个 小于611440 但是6开头的值
-	rand.Seed(time.Now().UnixNano())
-	randNum := rand.Intn(611440)
-	for randNum > 611440 || randNum < 600000 {
-		randNum = rand.Intn(611440)
-	}
-	// 插入奖励释放记录
-	var rewardRelease models.BlockRewardReleaseDetail
-	rewardRelease.MinerId = raisingPlan.MinerId
-	rewardRelease.AssetPackId = raising_id_i.BigInt().Uint64()
-	rewardRelease.ReleasedReward = decimal.NewFromFloat(released_balance_f)
-	rewardRelease.Height = uint64(randNum)
-
-	if err := tx.Create(&rewardRelease).Error; err != nil {
-		log.Errorf("create rewardRelease error:%+v", err)
-		return result.SystemError.WithParamError(err)
-	}
-	var rewardWillRelease models.BlockRewardReleaseDetail
-	rewardWillRelease.MinerId = raisingPlan.MinerId
-	rewardWillRelease.AssetPackId = raising_id_i.BigInt().Uint64()
-	rewardWillRelease.ReleasedReward = decimal.NewFromFloat(will_release_f)
-	rewardWillRelease.Height = uint64(randNum) * 100
-
-	if err := tx.Create(&rewardWillRelease).Error; err != nil {
-		log.Errorf("create rewardRelease error:%+v", err)
-		return result.SystemError.WithParamError(err)
-	}
-	tx.Commit()
 	return result.OK
 }
 
