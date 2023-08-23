@@ -80,11 +80,13 @@ func (this *RaisingPlanController) RaiseTestSealProgress(c *gin.Context) goft.Js
 	}
 	log.Infof("asset_pack_id: %+v ,updateMap:%+v", raising_id, updateMap)
 	if err := tx.Model(&models.RaisingAssetPack{}).Where("asset_pack_id = ?", raising_id).Updates(updateMap).Error; err != nil {
+		log.Error(err)
 		return result.SystemError.WithParamError(err)
 	}
 	// 查询募集计划
 	var raisingPlan models.RaisingPlan
 	if err := tx.Where("raising_id = ?", raising_id).First(&raisingPlan).Error; err != nil {
+		log.Errorf("query raisingPlan error:%+v", err)
 		return result.SystemError.WithParamError(err)
 	}
 
