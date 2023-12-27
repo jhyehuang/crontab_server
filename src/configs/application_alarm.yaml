@@ -1,0 +1,55 @@
+server:
+  port: 38888
+  name: crontab_server
+
+mysql:
+  username: ${FILFI_MYSQL_USERNAME}
+  password: ${FILFI_MYSQL_PASSWORD}
+  host: ${FILFI_MYSQL_HOST}
+  port: ${FILFI_MYSQL_PORT}
+  db: ${FILFI_MYSQL_DB}
+  maxIdleConns: 5
+  maxOpenConns: 10
+
+redis:
+  host: ${FILFI_REDIS_HOST}
+  port: ${FILFI_REDIS_PORT}
+  password:
+  database: 5
+  poolsize: 10
+  timeout: 5000ms
+
+log:
+  level: ${FILFI_LOG_LEVEL}
+
+
+lotus:
+  authToken: ${FILFI_LOTUS_AUTH_TOKEN}
+  url: ${FILFI_LOTUS_URL}
+  namespace: Filecoin
+
+glif:
+  urlV0 : ${FILFI_GLIF_URL_V0}
+  urlV1 : ${FILFI_GLIF_URL_V1}
+  authToken: ${FILFI_GLIF_AUTH_TOKEN}
+
+fildata:
+  url : ${FILFI_FILDATA_URL}
+  authToken : ${FILFI_FILDATA_AUTH_TOKEN}
+
+filfevm:
+  httpsurl: ${FILFI_FILFEVM_HTTPS_URL}
+  wsurl: ${FILFI_FILFEVM_WS_URL}
+  authToken: ${FILFI_FILFEVM_AUTH_TOKEN}
+  factorycontract: ${FILFI_FILFEVM_FACTORY_CONTRACT}
+
+
+
+fil:
+  network : ${FILFI_FIL_NETWORK}
+
+aws:
+  awsAccessKeyId : ${FILFI_AWS_ACCESS_KEY_ID}
+  awsSecretAccessKey : ${FILFI_AWS_SECRET_ACCESS_KEY}
+  awsDefaultRegion : ${FILFI_AWS_DEFAULT_REGION}
+  StaticResBucket : ${FILFI_STATIC_RES_BUCKET}
