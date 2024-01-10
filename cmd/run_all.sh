@@ -1,0 +1,29 @@
+git pull;
+go build;
+export FILFI_MYSQL_USERNAME=root
+export FILFI_MYSQL_PASSWORD=root2root
+export FILFI_MYSQL_HOST=10.100.244.100
+export FILFI_MYSQL_PORT=3306
+export FILFI_MYSQL_DB=letsfill-test
+export FILFI_REDIS_HOST=10.100.244.100
+export FILFI_REDIS_PORT=6379
+export FILFI_REDIS_PASSWORD=
+export FILFI_LOG_LEVEL=info
+export FILFI_LOTUS_AUTH_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.XUHbXcSrxu4iKo3X1xy0b9prXu-xHT2t1JJy8u2Eu7w
+export FILFI_LOTUS_URL=http://10.62.72.20:1234/rpc/v1
+export FILFI_GLIF_URL_V0=http://10.62.72.20:1234/rpc/v1
+export FILFI_GLIF_URL_V1=http://10.62.72.20:1234/rpc/v1
+export FILFI_GLIF_AUTH_TOKEN=
+export FILFI_FILDATA_URL=http://10.100.244.100:33004
+export FILFI_FILDATA_AUTH_TOKEN=
+export FILFI_FILFEVM_HTTPS_URL=http://10.62.72.20:1234/rpc/v1
+export FILFI_FILFEVM_WS_URL=http://10.62.72.20:1234/rpc/v1
+export FILFI_FILFEVM_AUTH_TOKEN=
+export FILFI_FILFEVM_FACTORY_CONTRACT=0x390CB629D5057AB6F990471a725179FdfB64dEFD
+export FILFI_FIL_NETWORK=testnet
+export FILFI_AWS_ACCESS_KEY_ID=
+export FILFI_AWS_SECRET_ACCESS_KEY=
+export FILFI_AWS_DEFAULT_REGION=
+export FILFI_STATIC_RES_BUCKET=
+kill -9 $(ps -ef| grep '/home/huangzhijie/crontab_server_3000/src/configs/application_3000.yaml' | awk '{print $2}')
+nohup ./crontab_server --config="//home/huangzhijie/crontab_server_3000/src/configs/application_3000.yaml"  >>letsfil_job_3000.log 2>&1  &
